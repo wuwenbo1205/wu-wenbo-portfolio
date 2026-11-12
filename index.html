@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>吴文博 · 设计作品集 2023—2027</title>
+<meta name="description" content="吴文博设计作品集：信息与图形、环境与空间、交互与影像三类共 11 组作品。景德镇陶瓷大学艺术与科技专业，2027 届。">
+<meta name="author" content="吴文博 WU WENBO">
+<meta name="theme-color" content="#F7F4ED">
+<meta property="og:type" content="website">
+<meta property="og:title" content="吴文博 · 设计作品集 2023—2027">
+<meta property="og:description" content="信息与图形 / 环境与空间 / 交互与影像，共 11 组作品。">
+<meta property="og:locale" content="zh_CN">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+<script>document.documentElement.classList.add("has-js");</script>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<header class="header" id="site-header"></header>
+
+<main id="app">
+
+  <!-- ======================= 视图 1：首页 ======================= -->
+  <div class="view" id="view-home">
+    <section class="hero">
+      <div class="wrap hero__top">
+        <div class="hero__meta" id="hero-meta"></div>
+        <div class="mono" id="hero-scroll-label"></div>
+      </div>
+      <div class="wrap hero__display"><h1 id="hero-title"></h1></div>
+      <div class="wrap hero__bottom">
+        <div>
+          <p class="hero__lede" id="hero-lede"></p>
+          <div class="hero__scroll" style="margin-top:30px"><i></i><span>SELECTED WORKS</span></div>
+        </div>
+        <div>
+          <div class="eyebrow" id="index-label" style="margin-bottom:14px"></div>
+          <div class="hero__cats" id="home-cats"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="collage" id="selected">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <h2 id="selected-title"></h2>
+          <div class="side" id="selected-note"></div>
+        </div>
+        <div class="collage__grid" id="home-collage"></div>
+      </div>
+    </section>
+
+    <section class="divider-band" data-reveal id="divider-band"></section>
+
+    <section class="featured wrap">
+      <div class="section-head" data-reveal>
+        <h2 id="featured-title"></h2>
+        <div class="side" id="featured-note"></div>
+      </div>
+      <div class="feat-list" id="home-featured"></div>
+      <div style="margin-top:38px" data-reveal>
+        <a class="btn-outline" id="all-works-label" href="#/works">查看全部项目 ↗</a>
+      </div>
+    </section>
+
+    <section class="wrap" id="contact" style="padding-top:clamp(60px,8vw,120px)">
+      <div class="about-grid">
+        <div data-reveal>
+          <div class="eyebrow" id="about-label" style="margin-bottom:22px"></div>
+          <h2 id="about-title"></h2>
+          <p id="about-text-1"></p>
+          <p id="about-text-2" style="margin-top:18px;color:var(--muted)"></p>
+        </div>
+        <div data-reveal data-delay="1">
+          <div class="eyebrow" id="contact-label" style="margin-bottom:22px"></div>
+          <div class="contact-list" id="contact-list"></div>
+          <div style="margin-top:30px">
+            <a href="#/about" style="border-bottom:1px solid var(--ink);padding-bottom:4px;font-size:13px;font-weight:600">更多关于我 ↗</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing" data-reveal>
+      <h2 id="closing-title"></h2>
+      <p id="closing-text"></p>
+      <small id="closing-note"></small>
+    </section>
+  </div>
+
+  <!-- ======================= 视图 2：作品索引 ======================= -->
+  <div class="view" id="view-works">
+    <div class="wrap">
+      <div class="page-head">
+        <div class="eyebrow" style="margin-bottom:18px" data-reveal>INDEX / 作品索引</div>
+        <h1 data-reveal>ALL<br>WORKS</h1>
+        <p class="lede" data-reveal data-delay="1">
+          按能力分三栏：信息与图形、环境与空间、交互与影像。共 <span id="works-count">11</span> 组，
+          每组都可点进详情页看完整作品图与设计动作说明。
+        </p>
+        <div class="filters" id="filters" data-reveal data-delay="2"></div>
+      </div>
+      <div class="works-grid" id="works-grid"></div>
+    </div>
+  </div>
+
+  <!-- ======================= 视图 3：作品详情 ======================= -->
+  <div class="view" id="view-project">
+    <div id="proj"></div>
+  </div>
+
+  <!-- ======================= 视图 4：关于 ======================= -->
+  <div class="view" id="view-about">
+    <div class="wrap">
+      <section class="about-hero">
+        <div class="eyebrow" style="margin-bottom:18px" data-reveal>ABOUT / 关于</div>
+        <h1 data-reveal>WU<br>WENBO</h1>
+      </section>
+
+      <section class="about-two">
+        <figure style="margin:0" id="about-figure" data-reveal>
+          <div class="about-photo"><img id="about-photo" alt="吴文博"></div>
+          <figcaption>吴文博 · 景德镇陶瓷大学 · 2027 届</figcaption>
+        </figure>
+        <div data-reveal data-delay="1">
+          <p class="about-intro" id="about-intro"></p>
+          <div class="fact-list" id="about-facts"></div>
+        </div>
+      </section>
+
+      <section class="timeline">
+        <div class="section-head" data-reveal>
+          <h2>PRACTICE<br>NOTES</h2>
+          <div class="side">按做作品的顺序排，不按年份堆。每一段对应一类能力的形成。</div>
+        </div>
+        <div id="timeline"></div>
+      </section>
+
+      <section style="padding-bottom:clamp(50px,8vw,110px)">
+        <div class="section-head" data-reveal>
+          <h2>CONTACT</h2>
+          <div class="side">找工作、聊合作、或者只是想看看原始文件，都可以直接联系。</div>
+        </div>
+        <div class="contact-list" id="about-contact" style="max-width:620px"></div>
+      </section>
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer" id="site-footer"></footer>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-label="高清作品图">
+  <button class="lightbox__close" data-lightbox-close aria-label="关闭">×</button>
+  <button class="lightbox__nav prev" data-lightbox-prev aria-label="上一张">‹</button>
+  <img class="lightbox__img" alt="" decoding="async">
+  <button class="lightbox__nav next" data-lightbox-next aria-label="下一张">›</button>
+  <div class="lightbox__bar"><span class="lightbox__caption"></span><span class="lightbox__counter"></span></div>
+</div>
+
+<script src="data/content.js"></script>
+<script src="js/store.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>
