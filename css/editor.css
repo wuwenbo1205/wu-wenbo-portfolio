@@ -92,11 +92,15 @@ button, input, textarea, select { font: inherit; color: inherit; }
   font-size: 12.5px; color: var(--muted); padding-top: 9px; text-align: right;
 }
 .f > .in { min-width: 0; }
-input[type="text"], textarea, select {
+input[type="text"], input[type="password"], input[type="search"],
+input[type="email"], input[type="url"], textarea, select {
   width: 100%; background: #fff; border: 1px solid var(--line); border-radius: 7px;
   padding: 8px 11px; font-size: 13.5px; outline: none; transition: .18s;
 }
-input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(30, 58, 102, .1); }
+input[type="text"]:focus, input[type="password"]:focus, input[type="search"]:focus,
+input[type="email"]:focus, input[type="url"]:focus, textarea:focus, select:focus {
+  border-color: var(--accent); box-shadow: 0 0 0 3px rgba(30, 58, 102, .1);
+}
 textarea { resize: vertical; min-height: 66px; line-height: 1.7; }
 .hint { font-size: 11.5px; color: var(--muted); margin-top: 5px; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -164,13 +168,127 @@ textarea { resize: vertical; min-height: 66px; line-height: 1.7; }
 }
 .toast.is-on { opacity: 1; transform: translate(-50%, 0); }
 
-@media (max-width: 900px) {
-  .ed { grid-template-columns: 1fr; }
-  .ed-side { flex-direction: row; align-items: center; gap: 12px; overflow-x: auto; padding: 12px; border-right: 0; border-bottom: 1px solid var(--line); }
-  .ed-nav { flex-direction: row; }
-  .ed-side__foot, .ed-state { display: none; }
-  .ed-body.split { grid-template-columns: 1fr; }
-  .ed-list { border-right: 0; border-bottom: 1px solid var(--line); max-height: 180px; }
-  .f { grid-template-columns: 1fr; gap: 4px; }
-  .f > label { text-align: left; padding-top: 0; }
+/* ------------------------------------------------------------------ 发布视图 */
+.pub-actions {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  margin: 26px 0 16px; padding-top: 22px; border-top: 1px solid var(--line);
+}
+.pub-log {
+  font-family: var(--font-mono); font-size: 12px; line-height: 1.9;
+  background: var(--paper-2); border: 1px solid var(--line); border-radius: 6px;
+  padding: 14px 16px; min-height: 76px; max-height: 260px; overflow: auto;
+  color: var(--muted); white-space: pre-wrap;
+}
+.pub-log .ok { color: #2C6B4F; }
+.pub-log .bad { color: var(--danger); }
+.pub-log .warn { color: #8A6A1F; }
+.pub-help {
+  margin-top: 22px; border: 1px solid var(--line); border-radius: 6px;
+  padding: 12px 16px; background: #fff; font-size: 13px;
+}
+.pub-help summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+.pub-help ol { margin: 12px 0 8px; padding-left: 20px; line-height: 1.9; }
+.pub-help code {
+  font-family: var(--font-mono); font-size: 11.5px; background: var(--paper-2);
+  padding: 1px 5px; border-radius: 3px;
+}
+
+/* ==================================================================
+   窄屏（手机 / 竖屏平板）
+   ------------------------------------------------------------------
+   原来左侧 208px 固定栏在手机上要占掉半屏，主编辑区挤成一条。
+   改成：顶部一行「标题 + 状态」+ 一行可横向滑动的栏目胶囊。
+   ================================================================== */
+@media (max-width: 820px) {
+
+  /* 侧栏从「左侧竖条」变成「顶部两条横条」 */
+  .ed {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    height: 100dvh;
+  }
+
+  .ed-side {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    padding: 10px 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .ed-logo { font-size: 13.5px; flex: 0 0 auto; }
+  .ed-logo small { display: none; }
+
+  /* 状态压成一行，太长就省略号，别让它撑开 */
+  .ed-state {
+    flex: 1 1 auto;
+    min-width: 0;
+    border-top: 0;
+    padding-top: 0;
+    text-align: right;
+    font-size: 9px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ed-state br { display: none; }
+
+  /* 栏目变成第二行的横向胶囊条，可左右滑 */
+  .ed-nav {
+    order: 3;
+    flex: 1 1 100%;
+    flex-direction: row;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .ed-nav::-webkit-scrollbar { display: none; }
+  .ed-nav button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 7px 13px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, .045);
+    font-size: 13px;
+  }
+  .ed-nav button.is-on { background: var(--ink); }
+  .ed-nav em { display: none; }
+
+  /* 侧栏底部的跳转链接在手机上没地方放，收起来 */
+  .ed-side__foot { display: none; }
+
+  /* 顶栏：标题独占一行，按钮换行排 */
+  .ed-top { padding: 10px 12px 12px; gap: 8px; }
+  .ed-top h1 { flex: 1 1 100%; font-size: 14px; }
+  .ed-top h1 span { display: block; margin: 3px 0 0; font-size: 11.5px; }
+
+  .ed-body { padding: 18px 14px 80px; }
+
+  /* 表单标签从左侧一列改到输入框上方 */
+  .f { grid-template-columns: 1fr; gap: 4px; margin-bottom: 16px; }
+  .f > label { text-align: left; padding-top: 0; font-size: 12px; }
+  .row2 { grid-template-columns: 1fr; }
+
+  /* 作品页：列表在上（限高可滚），编辑区在下 */
+  .ed-body.split {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .ed-list {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    max-height: 32vh;
+    padding: 12px 10px;
+  }
+  .ed-pane { padding: 18px 14px 80px; }
+
+  .block__h input { flex: 1 1 auto; }
+
+  .pub-actions { margin-top: 18px; padding-top: 16px; }
+  .pub-actions .btn { flex: 1 1 auto; }
+  .pub-log { font-size: 11px; max-height: 200px; }
 }
