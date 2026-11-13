@@ -303,13 +303,157 @@
     return h;
   }
 
+  /* ---------------------------------------------------------- 发布到 GitHub */
+  function viewPublish() {
+    var P = window.PortfolioPublish;
+    var c = (P && P.cfg()) || {};
+
+    /* 没填过仓库时，用当前网址推断一个填进去（本机 file:// 打开时推断为空） */
+    if (P && !c.repo) {
+      var guess = P.guessRepo();
+      if (guess) { c.repo = guess; P.saveCfg({ repo: guess, branch: c.branch || 'main', token: c.token || '' }); }
+    }
+    var h = '';
+
+    h += '<p class="hint" style="margin:0 0 20px">填一次仓库信息，以后每次改完点「立即发布」。' +
+         '内容会直接提交进 GitHub 仓库，网站大约 1 分钟后自动更新——不需要再导出文件、也不用重传图片。</p>';
+
+    h += '<div class="f"><label>仓库</label><div class="in">' +
+      '<input type="text" data-cfg="repo" placeholder="用户名/仓库名，例如 wuwenbo/wu-wenbo-portfolio" value="' + esc(c.repo || '') + '">' +
+      '<div class="hint">可以直接粘 github.com 上那个完整网址，会自动识别</div>' +
+    '</div></div>';
+
+    h += '<div class="f"><label>分支</label><div class="in">' +
+      '<input type="text" data-cfg="branch" placeholder="main" value="' + esc(c.branch || 'main') + '">' +
+      '<div class="hint">一般就是 main，不确定就别动</div>' +
+    '</div></div>';
+
+    h += '<div class="f"><label>访问令牌</label><div class="in">' +
+      '<input type="password" data-cfg="token" placeholder="github_pat_…" value="' + esc(c.token || '') + '">' +
+      '<div class="hint">只保存在这台设备的浏览器里，不会发到 GitHub 以外的地方</div>' +
+    '</div></div>';
+
+    h += '<div class="pub-actions">' +
+      '<button class="btn" data-pub="test">测试连接</button>' +
+      '<button class="btn primary" data-pub="go">立即发布</button>' +
+      '<button class="btn" data-pub="pull">载入线上最新</button>' +
+    '</div>';
+
+    h += '<div class="pub-log" id="pub-log">还没有操作。</div>';
+
+    h += '<details class="pub-help"><summary>怎么生成令牌？（点开看）</summary><ol>' +
+      '<li>打开 github.com/settings/personal-access-tokens/new</li>' +
+      '<li><b>Token name</b> 随便写，比如 portfolio-editor</li>' +
+      '<li><b>Expiration</b> 选 90 days 或更长</li>' +
+      '<li><b>Repository access</b> 选 Only select repositories，只勾你这个作品集仓库</li>' +
+      '<li><b>Permissions</b> 展开 Repository permissions：' +
+        '<code>Contents</code> 设为 Read and write，<code>Pages</code> 设为 Read and write</li>' +
+      '<li>点 Generate token，复制那串 github_pat_… 粘到上面</li>' +
+      '</ol><p class="hint">令牌等于仓库的钥匙，贴进这里就够了，不要发到聊天、邮件或截图里。' +
+      '换电脑或清过浏览器缓存后需要重新填一次。</p></details>';
+
+    return h;
+  }
+
+  function bindPublish() {
+    var P = window.PortfolioPublish;
+    if (!P) {
+      var box0 = $('#pub-log');
+      if (box0) box0.innerHTML = '<div class="bad">发布模块没加载，检查 js/publish.js 是否存在</div>';
+      return;
+    }
+
+    /* 配置随打随存 */
+    $$('[data-cfg]').forEach(function (el) {
+      el.addEventListener('input', function () {
+        var c = P.cfg();
+        c[el.dataset.cfg] = el.value.trim();
+        P.saveCfg(c);
+      });
+    });
+
+    var lines = [];
+    function log(msg, cls) {
+      lines.push({ m: msg, c: cls || '' });
+      var box = $('#pub-log');
+      if (!box) return;
+      box.innerHTML = lines.map(function (l) {
+        return '<div class="' + l.c + '">' + esc(l.m) + '</div>';
+      }).join('');
+      box.scrollTop = box.scrollHeight;
+    }
+
+    $$('[data-pub]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        if (btn.disabled) return;
+        var act = btn.dataset.pub;
+        var label = btn.textContent;
+
+        if (act === 'go') {
+          if (!confirm('把当前编辑的内容发布到线上？\n\n提交后大约 1 分钟，网站对外更新。')) return;
+        }
+        if (act === 'pull') {
+          if (!confirm('用线上仓库的内容覆盖当前草稿？\n\n本地还没发布的改动会丢失。')) return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = '处理中…';
+        if (act !== 'go') lines = [];
+
+        try {
+          if (act === 'test') {
+            var cfgNow = P.cfg();
+            log('仓库：' + (cfgNow.repo || '（未填写）'));
+            log('分支：' + (cfgNow.branch || 'main'));
+            var info = await P.check();
+            log('连接成功 — ' + info.repo + ' @ ' + info.branch, 'ok');
+            log('data/content.js 现有 ' + Math.round(info.contentSize / 1024) + ' KB');
+            log('Pages：' + (info.pages ? '已启用' : '没检测到，去 Settings → Pages 打开'), info.pages ? 'ok' : 'warn');
+
+          } else if (act === 'go') {
+            var draft = JSON.parse(JSON.stringify(C));
+            var r = await P.publish(draft, log);
+            if (r.skipped) {
+              log('线上内容与当前一致，没有提交。', 'ok');
+            } else {
+              C = draft;
+              S.save(C);
+              log('发布成功，提交号 ' + r.commit, 'ok');
+              if (r.uploaded) log('本次新上传 ' + r.uploaded + ' 张图片');
+              log('GitHub Pages 正在重建，约 1 分钟后刷新网站即可看到。');
+              render();
+            }
+
+          } else if (act === 'pull') {
+            var got = await P.pull();
+            S.save(got.data);
+            C = S.get(true);
+            state.sel = 0;
+            render();
+            toast('已载入线上最新内容');
+          }
+        } catch (err) {
+          log('失败：' + err.message, 'bad');
+          if (err.status === 401) log('令牌无效或已过期，重新生成一个再填。', 'bad');
+          if (err.status === 403) log('令牌权限不够，Contents 需要 Read and write。', 'bad');
+          if (err.status === 404) log('仓库或分支找不到，检查用户名/仓库名是否写对。', 'bad');
+          if (err.status === 409) log('线上刚被改动过。先点「载入线上最新」，确认后再发布。', 'bad');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = label;
+        }
+      });
+    });
+  }
+
   /* ---------------------------------------------------------- 渲染 */
   var NAV = [
     { id: 'site', label: '站点信息' },
     { id: 'projects', label: '作品' },
     { id: 'about', label: '关于页' },
     { id: 'parts', label: '作品分类' },
-    { id: 'contact', label: '联系方式' }
+    { id: 'contact', label: '联系方式' },
+    { id: 'publish', label: '发布' }
   ];
 
   function render() {
@@ -338,8 +482,10 @@
       if (state.view === 'about') body.innerHTML = viewAbout();
       if (state.view === 'contact') body.innerHTML = viewContact();
       if (state.view === 'parts') body.innerHTML = viewParts();
+      if (state.view === 'publish') body.innerHTML = viewPublish();
     }
     bindInputs();
+    if (state.view === 'publish') bindPublish();
     paintState();
   }
 
