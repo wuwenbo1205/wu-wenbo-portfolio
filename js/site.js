@@ -615,7 +615,8 @@
     bar.className = 'editbar';
     bar.innerHTML =
       '<b>编辑模式</b>' +
-      '<button data-act="save" class="primary">保存草稿</button>' +
+      '<button data-act="publish" class="primary">↑ 发布上线</button>' +
+      '<button data-act="save">保存草稿</button>' +
       '<button data-act="export">导出 content.js</button>' +
       '<button data-act="admin">内容管理</button>' +
       '<button data-act="reset">恢复默认</button>' +
@@ -687,11 +688,50 @@
       });
     }
 
+    /* 一键发布到 GitHub：内容直接提交进仓库，Pages 自动重建 */
+    function publishNow(b) {
+      var P = window.PortfolioPublish;
+      if (!P) { alert('发布模块没有加载，检查 js/publish.js 是否存在。'); return; }
+
+      var cfg = P.cfg();
+      if (!cfg.repo || !cfg.token) {
+        if (confirm('还没配置仓库和访问令牌。\n\n需要先填一次，之后这里就能一键发布。\n\n现在去配置吗？')) {
+          location.href = 'editor.html#publish';
+        }
+        return;
+      }
+
+      S.save(C);
+      var draft = JSON.parse(JSON.stringify(C));
+      var label = b.textContent;
+      b.disabled = true;
+      b.textContent = '发布中…';
+
+      P.publish(draft, function (m) {
+        b.textContent = m.length > 16 ? m.slice(0, 16) + '…' : m;
+      }).then(function (r) {
+        if (r.skipped) {
+          alert('线上内容与当前完全一致，没有产生提交。');
+        } else {
+          C = draft;
+          S.save(C);
+          alert('已发布，提交号 ' + r.commit + '。\n\nGitHub Pages 正在重建，大约 1 分钟后网站对外更新。\n\n如果这次加了新图片，本机双击打开时可能显示不出来——文件已经在 GitHub 上，本机没有；用线上地址查看是正常的。');
+        }
+      }).catch(function (err) {
+        alert('发布失败：' + err.message + '\n\n常见原因：令牌过期或权限不足（Contents 需要读写权限）、仓库名写错。');
+      }).finally(function () {
+        b.disabled = false;
+        b.textContent = label;
+      });
+    }
+
     bar.addEventListener('click', function (e) {
       var b = e.target.closest('button[data-act]');
       if (!b) return;
       var act = b.dataset.act;
-      if (act === 'save') {
+      if (act === 'publish') {
+        publishNow(b);
+      } else if (act === 'save') {
         alert('已保存到本机草稿。\n\n注意：草稿只在 ?edit=1 编辑模式下可见，正常浏览看到的是 data/content.js 里的版本。\n要让改动正式生效，请点「导出 content.js」，再用它覆盖 data/content.js。');
       } else if (act === 'export') {
         S.exportContent();
